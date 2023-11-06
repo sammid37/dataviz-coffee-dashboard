@@ -1,9 +1,11 @@
-# Importações necessárias
 from dash import Dash, html, dcc, Input, Output
 import pandas as pd
 import plotly.graph_objects as go
 
 app = Dash(__name__)
+
+######################## Dados ########################
+
 
 # dicionario do preco no varejo  - grafico 1
 dados_preco = {
@@ -16,6 +18,7 @@ dados_preco = {
 }
 df_preco = pd.DataFrame(dados_preco)
 df_preco['Meses'] = pd.to_datetime(df_preco['Meses'])
+preco_max = max(list(df_preco['Preco']))
 opcoes_varejo = ['Últimos 5 meses', 'Novembro 2022 - Março 2023', 'Junho 2022 - Outubro 2022', 'Janeiro 2022 - Maio 2022']
 
 # dicionário de tipos de café e quantidade exportada - grafico 2
@@ -24,58 +27,97 @@ dados_cafe = {
     'Cafe Arábica': [37929, 32721, 31437, 48793, 34296, 47484, 34249, 43382],
     'Cafe Robusta': [16814, 18155, 16293, 14310, 15013, 14174, 10721, 7987]
 }
-anos = list(dados_cafe['Anos'])
+anos_cafe = list(dados_cafe['Anos'])
+
+# dicionario do consumo per capita - grafico 3
+dados_per_capita = {
+    'Anos': [2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 
+             2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022],
+    'Café Verde': [4.65, 5.01, 5.14, 5.34, 5.53, 5.64, 5.81, 6.02, 6.10, 6.23, 
+                   6.09, 6.12, 6.12, 6.29, 6.38, 6.02, 5.95, 5.99, 6.06, 5.96],
+    'Café Torrado': [3.72, 4.01, 4.11, 4.27, 4.42, 4.51, 4.65, 4.81, 4.88, 4.98, 
+                     4.87, 4.89, 4.90, 5.03, 5.10, 4.82, 4.76, 4.79, 4.84, 4.77]
+}
+opcoes_per_capita = ['2018 - 2022', '2013 - 2017', '2008 - 2012', '2003 - 2007']
+
+######################## Estrutura do dashboard ########################
 
 app.layout = html.Div(
-    children=[
-        html.H1(
-            children='Produção e Consumo de Café no Brasil', style={'text-align': 'center'}
-        ),
+children=[
+    html.H1(
+    children='Produção e Consumo de Café no Brasil', style={'text-align': 'center'}
+    ),
+    ##### div da primeira linha #####
+    html. Div(
+    children = [
         html.Div(
             children=[
-                html.H3(
-                    children='Preço no varejo', style={'text-align': 'left'}
-                ),
-                dcc.Dropdown(
-                    id='preco-dropdown',
-                    options=[{'label': str(opcao), 'value': opcao} for opcao in opcoes_varejo],
-                    value=opcoes_varejo[0]
-                ), # ajeitar eixo para ter início 0
-                dcc.Graph(
-                    id="grafico-preco",
-                ),
-            ],
-            style={
-                'width': '40%',
-                'margin': '5%',
-                'display': 'inline-block'
-            }
-        ), # verificar dados do gráfico abaixo
-        html.Div(
-            children=[
-                html.H3(
-                    children='Produção por tipo de café',
-                    style={'text-align': 'right'}
-                ),
-                dcc.Dropdown(
-                    id='cafe-dropdown',
-                    options=[{'label': str(ano), 'value': ano} for ano in anos],
-                    value=anos[0]
-                ),
-                dcc.Graph(
-                    id="grafico-cafe",
-                ),
-            ],
-            style={
-                'width': '40%',
-                'margin-right': '5%',
-                'display': 'inline-block'
-            }
-        )
-    ]
-)
+            html.H3(
+            children='Preço no varejo', style={'text-align': 'left'}
+            ),
+            dcc.Dropdown(
+            id='preco-dropdown',
+            options=[{'label': str(opcao), 'value': opcao} for opcao in opcoes_varejo],
+            value=opcoes_varejo[0]
+            ), 
+            dcc.Graph(
+            id="grafico-preco",
+            )
+        ],
+        style={
+        'width': '40%',
+        'margin-left': '5%',
+        'display': 'inline-block',
+        'padding': '10px'
 
-# função de retorno para o gráfico de preço
+        }),
+        html.Div(
+        children=[
+            html.H3(children='Produção por tipo de café',style={'text-align': 'right'}
+            ),
+            dcc.Dropdown(
+            id='cafe-dropdown',
+            options=[{'label': str(ano), 'value': ano} for ano in anos_cafe],
+            value=anos_cafe[0]
+            ),
+            dcc.Graph(
+            id="grafico-cafe",
+            )
+        ],
+        style={
+        'width': '40%',
+        'margin-right': '5%',
+        'display': 'inline-block',
+        'padding': '10px'
+        })
+    ]),
+    ##### div da segunda linha #####
+    html.Div(
+    children = [
+        html.Div(
+        children = [
+            html.H3(children='Consumo per capita',style={'text-align': 'left'}
+            ),
+            dcc.Dropdown(
+            id='percapita-dropdown',
+            options=[{'label': str(ano), 'value': ano} for ano in opcoes_per_capita], 
+            value=opcoes_per_capita[0]
+            ),
+            dcc.Graph(
+            id="grafico-percapita",
+            ),
+        ],
+        style={
+        'width': '40%',
+        'margin': '5%',
+        'display': 'inline-block'
+        })
+    ])  
+])
+
+######################## Funções de retorno ########################
+
+# função de retorno para o gráfico de preço [1]
 @app.callback(
     Output('grafico-preco', 'figure'),
     Input('preco-dropdown', 'value')
@@ -102,13 +144,13 @@ def update_preco(opcao):
             'name': 'serie preco'
         }],
         'layout':{
-            'title': '',
+            'title': f'Preço no varejo do Kg de café - {opcao}',
             'xaxis': {'title': ''},
-            'yaxis': {'title': 'R$ / Kg'}
+            'yaxis': {'title': 'R$ / Kg', 'range': [0, preco_max]}
         }
     }
 
-# função de retorno para producao por tipo
+# função de retorno para producao por tipo [2]
 @app.callback(
     Output('grafico-cafe', 'figure'),
     Input('cafe-dropdown', 'value')
@@ -118,18 +160,73 @@ def update_cafe(ano_selecionado):
     cafe_robusta = dados_cafe['Cafe Robusta']
     
     fig = go.Figure(data=[
-        go.Bar(name='Café Arábica', x=[ano_selecionado], y=[cafe_arabica[anos.index(ano_selecionado)]]),
-        go.Bar(name='Café Robusta', x=[ano_selecionado], y=[cafe_robusta[anos.index(ano_selecionado)]])
+        go.Bar(name='Café Arábica', x=[ano_selecionado], y=[cafe_arabica[anos_cafe.index(ano_selecionado)]]),
+        go.Bar(name='Café Robusta', x=[ano_selecionado], y=[cafe_robusta[anos_cafe.index(ano_selecionado)]])
     ])
     
     fig.update_layout(
         title=f'Quantidade de Café Arábica e Robusta em {ano_selecionado}',
-        xaxis=dict(title='Tipo de Café'),
+        xaxis=dict(title=''),
         yaxis=dict(title='Quantidade produzida por tipo'),
         barmode='group'
     )
     
     return fig
 
+# função de retorno para o gráfico do consumo per capita [3]
+@app.callback(
+    Output('grafico-percapita', 'figure'),
+    Input('percapita-dropdown', 'value')
+)
+def update_percapita(opcao):
+    cafe_verde = dados_per_capita['Café Verde']
+    cafe_torrado = dados_per_capita['Café Torrado']
+    anos = list(dados_per_capita['Anos'])
+
+    if opcao == opcoes_per_capita[0]:
+        x_filtr = anos[-5:]
+    elif opcao == opcoes_per_capita[1]:
+        x_filtr = anos[-10:-5]
+    elif opcao == opcoes_per_capita[2]:
+        x_filtr = anos[-15:-10]
+    else:
+        x_filtr = anos[:5]
+
+
+    fig = go.Figure()
+    for i in range(5):  
+        ano = x_filtr[i]
+        quantidade_verde= cafe_verde[anos.index(ano)]
+        quantidade_torrado = cafe_torrado[anos.index(ano)]
+
+        fig.add_trace(go.Bar(
+            name=f'Café Verde - {ano}',
+            x=[ano+0.1],
+            y=[quantidade_verde],
+            offset=i,
+            width = 0.4,
+            customdata=[ano], 
+            marker=dict(color='green') 
+        ))
+
+        fig.add_trace(go.Bar(
+            name=f'Café Torrado - {ano}',
+            x=[ano+0.5],
+            y=[quantidade_torrado],
+            offset=i,
+            width = 0.4,
+            customdata=[ano],  
+            marker=dict(color='brown')
+        ))
+
+    fig.update_layout(
+        title=f'Consumo per capita de café verde e torrado ({opcao})',
+        xaxis=dict(title=''),
+        yaxis=dict(title='Kg / habitante ano', range = [0, 7]),
+        barmode='group',
+        width = 500
+    )
+    return fig
+    
 if __name__ == '__main__':
     app.run_server(debug=True)
