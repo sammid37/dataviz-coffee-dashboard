@@ -116,25 +116,13 @@ children=[
         ],
         style={
         'width': '40%',
-        'margin': '5%',
-        'display': 'inline-block'
-        })
-    ]),
-    #### div terceira linha #####
-	html.Div(
-	children=[
+        'margin-left': '5%',
+        'display': 'inline-block',
+        'padding': '10px'
+        }),
 		html.Div(
 		children = [
-			html.H3(children='Exportações por espécie', style = {'text-aling': 'left'})
-			],
-			style = {
-            'width': '40%',
-            'margin': '5%',
-            'display': 'inline-block'
-			}),
-		html.Div(
-		children = [
-			html.H3(children='Exportações por  estado final', style = {'text-aling': 'right'}),
+			html.H3(children='Exportações por  estado final',style={'text-align': 'right'}),
 			dcc.Dropdown(
             id='expor2-dropdown',
             options=[{'label': str(ano), 'value': ano} for ano in opcoes_per_capita], 
@@ -145,10 +133,11 @@ children=[
             )],
 			style = {
             'width': '40%',
-            'margin': '5%',
-            'display': 'inline-block'
+            'margin-right': '5%',
+            'display': 'inline-block',
+            'padding': '10px'
             })]),  
-])
+    ])
 ######################## Funções de retorno ########################
 
 # função de retorno para o gráfico de preço [1]
@@ -181,7 +170,7 @@ def update_preco(opcao):
             }
         }],
         'layout':{
-            'title': f'Preço no varejo do Kg de café - {opcao}',
+            'title': f'Preço no varejo do kg de café  ({opcao})',
             'xaxis': {'title': ''},
             'yaxis': {'title': 'R$ / kg', 'range': [0, preco_max]}
         }
@@ -260,8 +249,7 @@ def update_percapita(opcao):
         title=f'Consumo per capita de café verde e torrado ({opcao})',
         xaxis=dict(title=''),
         yaxis=dict(title='Kg / habitante ano', range = [0, 7]),
-        barmode='group',
-        width = 500
+        barmode='group'
     )
     return fig
 
